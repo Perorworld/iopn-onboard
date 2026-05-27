@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPN Builder Board | IOPn</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #04060f; --bg2: #080c1a; --surface: #0c1228; --surface2: #101830;
+            --border: #1a2540; --text: #e2e8f0; --muted: #4a5568;
+            --blue: #3b82f6; --blue-dim: #1d4ed8; --green: #10b981;
+            --gold: #f59e0b; --silver: #94a3b8; --bronze: #cd7c3a;
+            --purple: #8b5cf6; --red: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; background-image: radial-gradient(ellipse at 10% 10%, rgba(59,130,246,0.05) 0%, transparent 50%), radial-gradient(ellipse at 90% 90%, rgba(139,92,246,0.05) 0%, transparent 50%); }
+
+        nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(4,6,15,0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 10px; }
+        .nav-logo { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .net-badge { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-family: 'JetBrains Mono', monospace; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); color: var(--blue); }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); animation: blink 2s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: 'Space Grotesk', sans-serif; }
+        .btn-blue { background: var(--blue-dim); color: white; }
+        .btn-blue:hover { background: var(--blue); }
+        .btn-green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+        .btn-green:hover { background: rgba(16,185,129,0.25); }
+        .btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .btn-outline:hover { color: var(--text); border-color: var(--blue); }
+        .btn-outline.active { color: var(--blue); border-color: var(--blue); background: rgba(59,130,246,0.08); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .tabs { display: flex; gap: 8px; padding: 20px 24px 0; flex-wrap: wrap; }
+        .page { display: none; padding: 24px; max-width: 900px; margin: 0 auto; }
+        .page.active { display: block; }
+
+        /* HERO */
+        .hero { text-align: center; padding: 40px 20px 32px; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.15); border-radius: 20px; padding: 6px 16px; margin-bottom: 24px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--blue); }
+        .hero h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 700; line-height: 1.2; margin-bottom: 12px; }
+        .hero h1 span { background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { color: var(--muted); font-size: 15px; max-width: 500px; margin: 0 auto 28px; line-height: 1.7; }
+        .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+        .stats-row { display: flex; gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 32px; }
+        .stat { flex: 1; background: var(--surface); padding: 16px; text-align: center; min-width: 0; }
+        .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--blue); }
+        .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* CARDS */
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+        .card-title { font-size: 14px; font-weight: 600; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
+        .form-group.full { grid-column: 1/-1; }
+        label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        input, select, textarea { width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 11px 14px; font-size: 14px; font-family: 'Space Grotesk', sans-serif; outline: none; transition: border-color 0.2s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--blue-dim); }
+        select option { background: var(--surface); }
+        textarea { resize: vertical; min-height: 80px; }
+        .submit-btn { width: 100%; padding: 13px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--blue-dim), var(--blue)); color: white; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'JetBrains Mono', monospace; transition: all 0.2s; margin-top: 16px; }
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(59,130,246,0.3); }
+        .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .submit-btn.green { background: linear-gradient(135deg, #059669, var(--green)); }
+        .submit-btn.green:hover { box-shadow: 0 8px 24px rgba(16,185,129,0.3); }
+        .tx-status { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-family: 'JetBrains Mono', monospace; display: none; }
+        .tx-status.pending { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: var(--gold); display: block; }
+        .tx-status.success { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: var(--green); display: block; }
+        .tx-status.error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--red); display: block; }
+
+        /* BADGES */
+        .badge-pill { padding: 3px 12px; border-radius: 20px; font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 700; display: inline-block; }
+        .badge-gold { background: rgba(245,158,11,0.12); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+        .badge-silver { background: rgba(148,163,184,0.12); color: var(--silver); border: 1px solid rgba(148,163,184,0.3); }
+        .badge-bronze { background: rgba(205,124,58,0.12); color: var(--bronze); border: 1px solid rgba(205,124,58,0.3); }
+        .badge-newbie { background: rgba(139,92,246,0.12); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+
+        /* BADGE DISPLAY CARD */
+        .badge-card { border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .badge-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+        .badge-card.gold { background: linear-gradient(135deg, #1a1200, #0d1a35); border: 1px solid rgba(245,158,11,0.3); }
+        .badge-card.gold::before { background: linear-gradient(90deg, var(--gold), #fde68a, var(--gold)); }
+        .badge-card.silver { background: linear-gradient(135deg, #0f1520, #0d1a35); border: 1px solid rgba(148,163,184,0.3); }
+        .badge-card.silver::before { background: linear-gradient(90deg, var(--silver), #e2e8f0, var(--silver)); }
+        .badge-card.bronze { background: linear-gradient(135deg, #1a0d00, #0d1a35); border: 1px solid rgba(205,124,58,0.3); }
+        .badge-card.bronze::before { background: linear-gradient(90deg, var(--bronze), #f59e0b, var(--bronze)); }
+        .badge-card.newbie { background: linear-gradient(135deg, #0d0a1a, #0d1a35); border: 1px solid rgba(139,92,246,0.3); }
+        .badge-card.newbie::before { background: linear-gradient(90deg, var(--purple), #c4b5fd, var(--purple)); }
+        .badge-icon { font-size: 72px; margin-bottom: 12px; display: block; }
+        .badge-name { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        .badge-pts { font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 700; margin-bottom: 8px; }
+        .gold .badge-pts { color: var(--gold); }
+        .silver .badge-pts { color: var(--silver); }
+        .bronze .badge-pts { color: var(--bronze); }
+        .newbie .badge-pts { color: var(--purple); }
+        .badge-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+        .score-row { display: flex; justify-content: center; gap: 28px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+        .score-item .sv { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; }
+        .score-item .sl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+        /* CLAIM SECTION */
+        .claim-card { background: linear-gradient(135deg, #061a10, #04060f); border: 1px solid rgba(16,185,129,0.2); border-radius: 14px; padding: 28px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .claim-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), #6ee7b7, var(--green)); }
+        .claim-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--green); }
+        .claim-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+        .tx-preview { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 16px 0; display: none; }
+        .tx-preview.show { display: block; }
+        .tx-preview-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tx-preview-row:last-child { margin-bottom: 0; padding-top: 10px; border-top: 1px solid var(--border); }
+        .tx-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .tx-value { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; }
+
+        /* LEADERBOARD */
+        .badge-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .badge-filter { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: 'JetBrains Mono', monospace; transition: all 0.2s; opacity: 0.5; }
+        .badge-filter.active { opacity: 1; }
+        .badge-filter.all { background: rgba(59,130,246,0.1); color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+        .badge-filter.gold { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid rgba(245,158,11,0.2); }
+        .badge-filter.silver { background: rgba(148,163,184,0.1); color: var(--silver); border: 1px solid rgba(148,163,184,0.2); }
+        .badge-filter.bronze { background: rgba(205,124,58,0.1); color: var(--bronze); border: 1px solid rgba(205,124,58,0.2); }
+        .badge-filter.newbie { background: rgba(139,92,246,0.1); color: var(--purple); border: 1px solid rgba(139,92,246,0.2); }
+        .lb-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; animation: fadeIn 0.4s ease both; transition: border-color 0.2s; }
+        .lb-card:hover { border-color: rgba(59,130,246,0.3); }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+        .lb-rank { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--muted); min-width: 36px; text-align: center; }
+        .lb-info { flex: 1; min-width: 0; }
+        .lb-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .lb-meta { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+        .lb-right { text-align: right; }
+        .lb-score-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--blue); }
+        .lb-score-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+        .lb-type { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); margin-top: 2px; }
+
+        /* PLEDGE */
+        .pledge-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; animation: fadeIn 0.4s ease both; position: relative; overflow: hidden; }
+        .pledge-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--blue), transparent); }
+        .pledge-card:hover { border-color: rgba(59,130,246,0.2); }
+        .pledge-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+        .pledge-handle { font-size: 15px; font-weight: 600; }
+        .pledge-text { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; font-style: italic; }
+        .pledge-footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .pledge-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+        .state-msg { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; border: 1px dashed var(--border); border-radius: 12px; }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        footer { border-top: 1px solid var(--border); padding: 20px 24px; text-align: center; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo">OPN Builder Board</div>
+    <div class="nav-right">
+        <div class="net-badge"><span class="dot"></span>OPN Testnet · 984</div>
+        <button class="btn btn-outline" id="disconnect-btn" onclick="disconnectWallet()" style="display:none;">Disconnect</button>
+        <button class="btn btn-blue" id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+    </div>
+</nav>
+
+<div class="tabs">
+    <button class="btn btn-outline active" id="tab-home" onclick="switchPage('home')">🏠 Home</button>
+    <button class="btn btn-outline" id="tab-claim" onclick="switchPage('claim')">🏅 Claim Badge</button>
+    <button class="btn btn-outline" id="tab-register" onclick="switchPage('register')">📝 Register Builder</button>
+    <button class="btn btn-outline" id="tab-leaderboard" onclick="switchPage('leaderboard')">🏆 Leaderboard</button>
+    <button class="btn btn-outline" id="tab-pledges" onclick="switchPage('pledges')">📋 Pledge Board</button>
+    <button class="btn btn-outline" id="tab-profile" onclick="switchPage('profile')">👤 My Profile</button>
+</div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+    <div class="hero">
+        <div class="hero-badge"><span class="dot"></span>OPN Chain Testnet · Builder Program</div>
+        <h1>OPN <span>Builder</span> Board</h1>
+        <p>Claim your badge based on your real on-chain activity on OPN testnet, or register as a builder and pledge what you're building on OPN Chain.</p>
+        <div class="hero-btns">
+            <button class="btn btn-blue" style="padding:12px 28px;font-size:15px" onclick="switchPage('claim')">🏅 Claim My Badge</button>
+            <button class="btn btn-outline" style="padding:12px 28px;font-size:15px" onclick="switchPage('register')">📝 Register as Builder</button>
+        </div>
+    </div>
+    <div class="stats-row">
+        <div class="stat"><div class="stat-val" id="stat-builders">—</div><div class="stat-lbl">Builders</div></div>
+        <div class="stat"><div class="stat-val" id="stat-claimants">—</div><div class="stat-lbl">Badge Claims</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--gold)">🥇</div><div class="stat-lbl">Gold · 1000+</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--silver)">🥈</div><div class="stat-lbl">Silver · 500+</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--bronze)">🥉</div><div class="stat-lbl">Bronze · 100+</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--purple)">🌱</div><div class="stat-lbl">Newbie · &lt;100</div></div>
+    </div>
+</div>
+
+<!-- CLAIM BADGE -->
+<div class="page" id="page-claim">
+    <div class="claim-card">
+        <div class="claim-title">🏅 Claim Your OPN Badge</div>
+        <div class="claim-sub">Your badge is calculated automatically from your real transaction count on OPN Chain testnet. Connect your wallet, check your score, then claim your badge on-chain.</div>
+        <button class="submit-btn green" id="check-btn" onclick="checkScore()" disabled>Connect Wallet to Check Score</button>
+        <div class="tx-preview" id="tx-preview">
+            <div class="tx-preview-row">
+                <span class="tx-label">Wallet</span>
+                <span class="tx-value" id="preview-wallet">—</span>
+            </div>
+            <div class="tx-preview-row">
+                <span class="tx-label">OPN Transactions</span>
+                <span class="tx-value" id="preview-txcount">—</span>
+            </div>
+            <div class="tx-preview-row">
+                <span class="tx-label">Your Score</span>
+                <span class="tx-value" id="preview-score">—</span>
+            </div>
+            <div class="tx-preview-row">
+                <span class="tx-label">Badge</span>
+                <span class="tx-value" id="preview-badge">—</span>
+            </div>
+        </div>
+        <button class="submit-btn" id="claim-btn" onclick="claimBadge()" style="display:none;">🏅 Claim Badge On-Chain</button>
+        <div class="tx-status" id="claim-status"></div>
+    </div>
+    <div id="existing-claim"></div>
+</div>
+
+<!-- REGISTER -->
+<div class="page" id="page-register">
+    <div class="card">
+        <div class="card-title">📝 Register as a Builder</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Display Name</label>
+                <input type="text" id="reg-handle" placeholder="e.g. Billyjnr" />
+            </div>
+            <div class="form-group">
+                <label>X / Twitter Handle</label>
+                <input type="text" id="reg-xhandle" placeholder="e.g. @PEROR250" />
+            </div>
+            <div class="form-group">
+                <label>Skill Level</label>
+                <select id="reg-skill">
+                    <option value="0">🌱 Newbie</option>
+                    <option value="1">📚 Beginner</option>
+                    <option value="2">⚡ Intermediate</option>
+                    <option value="3">🔥 Advanced</option>
+                </select>
+            </div>
+            <div class="form-group full">
+                <label>Your Pledge — What are you building on OPN Chain?</label>
+                <textarea id="reg-pledge" placeholder="Describe what you are building on OPN Chain..."></textarea>
+            </div>
+        </div>
+        <button class="submit-btn" id="reg-btn" onclick="registerBuilder()" disabled>Connect Wallet to Register</button>
+        <div class="tx-status" id="reg-status"></div>
+    </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="page" id="page-leaderboard">
+    <div class="badge-filters">
+        <button class="badge-filter all active" onclick="filterBadge('all')">All</button>
+        <button class="badge-filter gold" onclick="filterBadge('gold')">🥇 Gold</button>
+        <button class="badge-filter silver" onclick="filterBadge('silver')">🥈 Silver</button>
+        <button class="badge-filter bronze" onclick="filterBadge('bronze')">🥉 Bronze</button>
+        <button class="badge-filter newbie" onclick="filterBadge('newbie')">🌱 Newbie</button>
+    </div>
+    <div id="leaderboard-list"><div class="state-msg"><div class="spinner"></div><br>Loading...</div></div>
+</div>
+
+<!-- PLEDGE BOARD -->
+<div class="page" id="page-pledges">
+    <div id="pledge-list"><div class="state-msg"><div class="spinner"></div><br>Loading pledges...</div></div>
+</div>
+
+<!-- MY PROFILE -->
+<div class="page" id="page-profile">
+    <div id="profile-content"><div class="state-msg">Connect your wallet to view your profile.</div></div>
+</div>
+
+<footer>OPN Builder Board · IOPn OPN Chain Testnet · Chain ID: 984</footer>
+
+<script>
+    const CONTRACT = "0xD3F875559723e69c78e42A7705F0C3FeaA6249Bd";
+    const RPC = "https://testnet-rpc.iopn.tech";
+    const EXPLORER = "https://testnet.iopn.tech";
+    const OPN_CHAIN = {
+        chainId: "0x3D8", chainName: "OPN Testnet",
+        nativeCurrency: { name: "OPN", symbol: "OPN", decimals: 18 },
+        rpcUrls: [RPC], blockExplorerUrls: [EXPLORER]
+    };
+    const ABI = [
+        "function registerBuilder(string,string,string,uint8) external",
+        "function claimBadge(uint256) external",
+        "function getBuilderInfo(address) view returns (string,string,string,uint8)",
+        "function getBuilderScore(address) view returns (uint256,uint256,uint256,uint256,uint8,uint256)",
+        "function getBadgeClaim(address) view returns (uint256,uint256,uint8,uint256)",
+        "function getAllBuilders() view returns (address[])",
+        "function getAllClaimants() view returns (address[])",
+        "function isRegistered(address) view returns (bool)",
+        "function hasClaimed(address) view returns (bool)",
+        "function totalBuilders() view returns (uint256)",
+        "function totalClaimants() view returns (uint256)"
+    ];
+
+    const BADGE_NAMES = ["Newbie","Bronze","Silver","Gold"];
+    const BADGE_EMOJIS = ["🌱","🥉","🥈","🥇"];
+    const BADGE_CLASSES = ["newbie","bronze","silver","gold"];
+    const SKILL_NAMES = ["Newbie","Beginner","Intermediate","Advanced"];
+
+    let provider, signer, contract, userAddress;
+    let allData = []; let dataLoaded = false;
+    let currentFilter = 'all';
+    let pendingTxCount = 0;
+
+    function badgeClass(b) { return "badge-" + BADGE_CLASSES[b]; }
+    function calcBadge(score) {
+        if (score >= 1000) return 3;
+        if (score >= 500) return 2;
+        if (score >= 100) return 1;
+        return 0;
+    }
+
+    function switchPage(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tabs .btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        document.getElementById('tab-' + page).classList.add('active');
+        if (page === 'leaderboard') loadLeaderboard();
+        if (page === 'pledges') loadPledges();
+        if (page === 'profile') loadProfile();
+        if (page === 'claim') loadExistingClaim();
+    }
+
+    async function connectWallet() {
+        if (!window.ethereum) { alert("Install MetaMask to continue."); return; }
+        try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            try {
+                await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: OPN_CHAIN.chainId }] });
+            } catch(e) {
+                if (e.code === 4902) await window.ethereum.request({ method: "wallet_addEthereumChain", params: [OPN_CHAIN] });
+            }
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            userAddress = await signer.getAddress();
+            contract = new ethers.Contract(CONTRACT, ABI, signer);
+            const wb = document.getElementById("wallet-btn");
+            wb.textContent = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+            wb.style.cssText = "background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;";
+            document.getElementById("disconnect-btn").style.display = "inline-block";
+            document.getElementById("check-btn").disabled = false;
+            document.getElementById("check-btn").textContent = "🔍 Check My Score";
+            document.getElementById("reg-btn").disabled = false;
+            document.getElementById("reg-btn").textContent = "Register on OPN Chain";
+            loadStats();
+        } catch(e) { alert("Connection failed: " + e.message); }
+    }
+
+    function disconnectWallet() {
+        provider = null; signer = null; contract = null; userAddress = null;
+        const wb = document.getElementById("wallet-btn");
+        wb.textContent = "Connect Wallet"; wb.style.cssText = "";
+        wb.className = "btn btn-blue";
+        document.getElementById("disconnect-btn").style.display = "none";
+        document.getElementById("check-btn").disabled = true;
+        document.getElementById("check-btn").textContent = "Connect Wallet to Check Score";
+        document.getElementById("reg-btn").disabled = true;
+        document.getElementById("reg-btn").textContent = "Connect Wallet to Register";
+        document.getElementById("tx-preview").classList.remove("show");
+        document.getElementById("claim-btn").style.display = "none";
+    }
+
+    async function getReadContract() {
+        const rp = new ethers.JsonRpcProvider(RPC);
+        return new ethers.Contract(CONTRACT, ABI, rp);
+    }
+
+    async function loadStats() {
+        try {
+            const rc = await getReadContract();
+            const [builders, claimants] = await Promise.all([rc.totalBuilders(), rc.totalClaimants()]);
+            document.getElementById("stat-builders").textContent = builders.toString();
+            document.getElementById("stat-claimants").textContent = claimants.toString();
+        } catch(e) {}
+    }
+
+    // AUTO TX COUNT FROM RPC
+    async function getTxCount(address) {
+        try {
+            const rp = new ethers.JsonRpcProvider(RPC);
+            const count = await rp.getTransactionCount(address);
+            return count;
+        } catch(e) { return 0; }
+    }
+
+    // CHECK SCORE
+    async function checkScore() {
+        if (!userAddress) return;
+        const btn = document.getElementById("check-btn");
+        btn.disabled = true; btn.textContent = "⏳ Checking...";
+        try {
+            const txCount = await getTxCount(userAddress);
+            const badge = calcBadge(txCount);
+            pendingTxCount = txCount;
+
+            document.getElementById("preview-wallet").textContent = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+            document.getElementById("preview-txcount").textContent = txCount;
+            document.getElementById("preview-score").textContent = txCount + " pts";
+            document.getElementById("preview-badge").innerHTML = `${BADGE_EMOJIS[badge]} ${BADGE_NAMES[badge]}`;
+            document.getElementById("tx-preview").classList.add("show");
+            document.getElementById("claim-btn").style.display = "block";
+            document.getElementById("claim-btn").textContent = `🏅 Claim ${BADGE_NAMES[badge]} Badge On-Chain`;
+        } catch(e) {
+            document.getElementById("claim-status").className = "tx-status error";
+            document.getElementById("claim-status").textContent = "⚠ " + e.message;
+        }
+        btn.disabled = false; btn.textContent = "🔍 Check My Score";
+    }
+
+    // CLAIM BADGE
+    async function claimBadge() {
+        const status = document.getElementById("claim-status");
+        try {
+            status.className = "tx-status pending";
+            status.textContent = "⏳ Claiming badge on OPN Chain...";
+            document.getElementById("claim-btn").disabled = true;
+            const tx = await contract.claimBadge(pendingTxCount);
+            status.textContent = "⏳ Confirming... " + tx.hash.slice(0,10) + "...";
+            await tx.wait();
+            status.className = "tx-status success";
+            status.textContent = "✅ Badge claimed on-chain! Tx: " + tx.hash.slice(0,10) + "...";
+            document.getElementById("claim-btn").disabled = false;
+            dataLoaded = false;
+            loadStats();
+            setTimeout(() => loadExistingClaim(), 2000);
+        } catch(e) {
+            status.className = "tx-status error";
+            status.textContent = "⚠ " + e.message;
+            document.getElementById("claim-btn").disabled = false;
+        }
+    }
+
+    async function loadExistingClaim() {
+        if (!userAddress) return;
+        const el = document.getElementById("existing-claim");
+        try {
+            const rc = await getReadContract();
+            const claimed = await rc.hasClaimed(userAddress);
+            if (!claimed) { el.innerHTML = ''; return; }
+            const [txCount, score, badge, claimedAt] = await rc.getBadgeClaim(userAddress);
+            const b = Number(badge);
+            const bc = BADGE_CLASSES[b];
+            el.innerHTML = `
+                <div class="badge-card ${bc}">
+                    <span class="badge-icon">${BADGE_EMOJIS[b]}</span>
+                    <div class="badge-name">Your OPN Badge</div>
+                    <div class="badge-pts">${Number(score)} pts</div>
+                    <div class="badge-sub"><span class="badge-pill ${badgeClass(b)}">${BADGE_NAMES[b]} Builder</span></div>
+                    <div class="score-row">
+                        <div class="score-item"><div class="sv">${Number(txCount)}</div><div class="sl">OPN TXs</div></div>
+                        <div class="score-item"><div class="sv">${Number(score)}</div><div class="sl">Score</div></div>
+                        <div class="score-item"><div class="sv">${new Date(Number(claimedAt)*1000).toLocaleDateString()}</div><div class="sl">Claimed</div></div>
+                    </div>
+                </div>`;
+        } catch(e) {}
+    }
+
+    // REGISTER
+    async function registerBuilder() {
+        const handle = document.getElementById("reg-handle").value.trim();
+        const xhandle = document.getElementById("reg-xhandle").value.trim();
+        const pledge = document.getElementById("reg-pledge").value.trim();
+        const skill = parseInt(document.getElementById("reg-skill").value);
+        const status = document.getElementById("reg-status");
+        if (!handle || !pledge) { status.className = "tx-status error"; status.textContent = "⚠ Fill in your name and pledge."; return; }
+        try {
+            status.className = "tx-status pending";
+            status.textContent = "⏳ Submitting to OPN Chain...";
+            document.getElementById("reg-btn").disabled = true;
+            const tx = await contract.registerBuilder(handle, xhandle, pledge, skill);
+            status.textContent = "⏳ Confirming... " + tx.hash.slice(0,10) + "...";
+            await tx.wait();
+            status.className = "tx-status success";
+            status.textContent = "✅ Registered on OPN Chain! Tx: " + tx.hash.slice(0,10) + "...";
+            document.getElementById("reg-btn").disabled = false;
+            dataLoaded = false; loadStats();
+            setTimeout(() => switchPage('profile'), 2000);
+        } catch(e) {
+            status.className = "tx-status error";
+            status.textContent = "⚠ " + e.message;
+            document.getElementById("reg-btn").disabled = false;
+        }
+    }
+
+    // LOAD ALL DATA
+    async function fetchAllData() {
+        if (dataLoaded) return allData;
+        try {
+            const rc = await getReadContract();
+            const [builders, claimants] = await Promise.all([rc.getAllBuilders(), rc.getAllClaimants()]);
+            allData = [];
+
+            for (const addr of builders) {
+                try {
+                    const [handle, xhandle, pledge, skill] = await rc.getBuilderInfo(addr);
+                    const [txScore, pledgeScore, xBonus, totalScore, badge, registeredAt] = await rc.getBuilderScore(addr);
+                    allData.push({ type: 'builder', addr, handle, xhandle, pledge, skill: Number(skill), totalScore: Number(totalScore), badge: Number(badge), registeredAt: Number(registeredAt) });
+                } catch(e) {}
+            }
+
+            for (const addr of claimants) {
+                try {
+                    const existing = allData.find(d => d.addr.toLowerCase() === addr.toLowerCase());
+                    if (existing) continue;
+                    const [txCount, score, badge, claimedAt] = await rc.getBadgeClaim(addr);
+                    allData.push({ type: 'claimant', addr, handle: addr.slice(0,6)+"..."+addr.slice(-4), xhandle: '', pledge: '', skill: 0, totalScore: Number(score), badge: Number(badge), registeredAt: Number(claimedAt) });
+                } catch(e) {}
+            }
+
+            allData.sort((a,b) => b.totalScore - a.totalScore);
+            dataLoaded = true;
+        } catch(e) {}
+        return allData;
+    }
+
+    async function loadLeaderboard() {
+        document.getElementById("leaderboard-list").innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Loading...</div>';
+        await fetchAllData();
+        renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+        const el = document.getElementById("leaderboard-list");
+        const filtered = currentFilter === 'all' ? allData : allData.filter(b => BADGE_CLASSES[b.badge] === currentFilter);
+        if (filtered.length === 0) { el.innerHTML = '<div class="state-msg">No builders in this category yet.</div>'; return; }
+        el.innerHTML = filtered.map((b,i) => `
+            <div class="lb-card" style="animation-delay:${i*0.04}s">
+                <div class="lb-rank">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
+                <div class="lb-info">
+                    <div class="lb-name">${b.handle||'Anonymous'} &nbsp;<span class="badge-pill ${badgeClass(b.badge)}">${BADGE_EMOJIS[b.badge]} ${BADGE_NAMES[b.badge]}</span></div>
+                    <div class="lb-meta">${b.xhandle?b.xhandle+' · ':''}${b.type==='builder'?SKILL_NAMES[b.skill]:'Badge Claim'} · ${b.addr.slice(0,6)}...${b.addr.slice(-4)}</div>
+                </div>
+                <div class="lb-right">
+                    <div class="lb-score-val">${b.totalScore}</div>
+                    <div class="lb-score-lbl">Score</div>
+                    <div class="lb-type">${b.type==='builder'?'Builder':'Claimant'}</div>
+                </div>
+            </div>`).join('');
+    }
+
+    function filterBadge(f) {
+        currentFilter = f;
+        document.querySelectorAll('.badge-filter').forEach(b => b.classList.remove('active'));
+        document.querySelector('.badge-filter.' + f).classList.add('active');
+        renderLeaderboard();
+    }
+
+    async function loadPledges() {
+        document.getElementById("pledge-list").innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Loading pledges...</div>';
+        await fetchAllData();
+        const builders = allData.filter(b => b.type === 'builder' && b.pledge);
+        if (builders.length === 0) { document.getElementById("pledge-list").innerHTML = '<div class="state-msg">No pledges yet. Be the first to register!</div>'; return; }
+        document.getElementById("pledge-list").innerHTML = builders.map((b,i) => `
+            <div class="pledge-card" style="animation-delay:${i*0.04}s">
+                <div class="pledge-top">
+                    <div class="pledge-handle">${b.handle} &nbsp;<span class="badge-pill ${badgeClass(b.badge)}">${BADGE_EMOJIS[b.badge]} ${BADGE_NAMES[b.badge]}</span></div>
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--blue)">${b.totalScore} pts</div>
+                </div>
+                <div class="pledge-text">"${b.pledge}"</div>
+                <div class="pledge-footer">
+                    ${b.xhandle?`<span class="pledge-meta">𝕏 ${b.xhandle}</span>`:''}
+                    <span class="pledge-meta">${SKILL_NAMES[b.skill]}</span>
+                    <span class="pledge-meta"><a href="${EXPLORER}/address/${b.addr}" target="_blank" style="color:var(--blue)">${b.addr.slice(0,6)}...${b.addr.slice(-4)}</a></span>
+                    <span class="pledge-meta">${new Date(b.registeredAt*1000).toLocaleDateString()}</span>
+                </div>
+            </div>`).join('');
+    }
+
+    async function loadProfile() {
+        const el = document.getElementById("profile-content");
+        if (!userAddress) { el.innerHTML = '<div class="state-msg">Connect your wallet to view your profile.</div>'; return; }
+        el.innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Loading...</div>';
+        try {
+            const rc = await getReadContract();
+            const [isReg, claimed] = await Promise.all([rc.isRegistered(userAddress), rc.hasClaimed(userAddress)]);
+            let html = '';
+
+            if (claimed) {
+                const [txCount, score, badge, claimedAt] = await rc.getBadgeClaim(userAddress);
+                const b = Number(badge); const bc = BADGE_CLASSES[b];
+                html += `
+                    <div class="badge-card ${bc}">
+                        <span class="badge-icon">${BADGE_EMOJIS[b]}</span>
+                        <div class="badge-name">${isReg ? (await rc.getBuilderInfo(userAddress))[0] : userAddress.slice(0,6)+"..."+userAddress.slice(-4)}</div>
+                        <div class="badge-pts">${Number(score)} pts</div>
+                        <div class="badge-sub"><span class="badge-pill ${badgeClass(b)}">${BADGE_NAMES[b]} Builder</span></div>
+                        <div class="score-row">
+                            <div class="score-item"><div class="sv">${Number(txCount)}</div><div class="sl">OPN TXs</div></div>
+                            <div class="score-item"><div class="sv">${Number(score)}</div><div class="sl">Score</div></div>
+                            <div class="score-item"><div class="sv">${new Date(Number(claimedAt)*1000).toLocaleDateString()}</div><div class="sl">Claimed</div></div>
+                        </div>
+                    </div>`;
+            }
+
+            if (isReg) {
+                const [handle, xhandle, pledge, skill] = await rc.getBuilderInfo(userAddress);
+                const [txScore, pledgeScore, xBonus, totalScore, badge, registeredAt] = await rc.getBuilderScore(userAddress);
+                const b = Number(badge); const bc = BADGE_CLASSES[b];
+                if (!claimed) {
+                    html += `
+                        <div class="badge-card ${bc}">
+                            <span class="badge-icon">${BADGE_EMOJIS[b]}</span>
+                            <div class="badge-name">${handle}</div>
+                            <div class="badge-pts">${Number(totalScore)} pts</div>
+                            <div class="badge-sub"><span class="badge-pill ${badgeClass(b)}">${BADGE_NAMES[b]} Builder</span></div>
+                            <div class="score-row">
+                                <div class="score-item"><div class="sv">${Number(txScore)}</div><div class="sl">TX Score</div></div>
+                                <div class="score-item"><div class="sv">${Number(pledgeScore)}</div><div class="sl">Pledge</div></div>
+                                <div class="score-item"><div class="sv">${Number(xBonus)}</div><div class="sl">X Bonus</div></div>
+                            </div>
+                        </div>`;
+                }
+                html += `
+                    <div class="card">
+                        <div class="card-title">📋 Your Pledge</div>
+                        <p style="color:var(--muted);font-size:14px;line-height:1.7;font-style:italic">"${pledge}"</p>
+                    </div>`;
+            }
+
+            if (!isReg && !claimed) {
+                html = `<div class="state-msg">No profile found.<br><br>
+                    <button class="btn btn-blue" onclick="switchPage('claim')" style="margin-right:8px">🏅 Claim Badge</button>
+                    <button class="btn btn-outline" onclick="switchPage('register')">📝 Register as Builder</button>
+                </div>`;
+            }
+
+            html += `<div class="card"><div class="card-title">🔗 On-Chain Wallet</div>
+                <p style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)">
+                <a href="${EXPLORER}/address/${userAddress}" target="_blank" style="color:var(--blue)">${userAddress}</a></p></div>`;
+
+            el.innerHTML = html;
+        } catch(e) {
+            el.innerHTML = `<div class="state-msg">⚠ Error: ${e.message}</div>`;
+        }
+    }
+
+    loadStats();
+</script>
+</body>
+</html>
