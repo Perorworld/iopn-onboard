@@ -398,7 +398,179 @@
             document.getElementById("check-btn").textContent = "🔍 Check My Score";
             document.getElementById("reg-btn").disabled = false;
             document.getElementById("reg-btn").textContent = "Register on OPN Chain";
-            loadStats();
+        
+    // QUEST DATA
+    const QUESTS = {
+        follows: [
+            { id: 1, name: "Follow @IOPn_io", pts: 50, link: "https://x.com/IOPn_io" },
+            { id: 2, name: "Follow @PEROR250", pts: 50, link: "https://x.com/PEROR250" },
+            { id: 3, name: "Follow @JimiIOPN", pts: 50, link: "https://x.com/JimiIOPN" }
+        ],
+        batches: [
+            { id: 4, name: "Tweet Batch 1 — Retweet & Comment (Tweets 1-4)", pts: 100, links: [
+                "https://x.com/i/status/2061498565126766753",
+                "https://x.com/i/status/2061499606412980577",
+                "https://x.com/i/status/2059742871570289071",
+                "https://x.com/i/status/2060082829434740929"
+            ]},
+            { id: 5, name: "Tweet Batch 2 — Retweet & Comment (Tweets 5-9)", pts: 100, links: [
+                "https://x.com/i/status/2060514611569328285",
+                "https://x.com/i/status/2060694868628852936",
+                "https://x.com/i/status/2060732245321625973",
+                "https://x.com/i/status/2057106946181009494",
+                "https://x.com/i/status/2058898546414493827"
+            ]},
+            { id: 6, name: "Tweet Batch 3 — Retweet & Comment (Tweets 10-14)", pts: 100, links: [
+                "https://x.com/i/status/2059323557520478573",
+                "https://x.com/i/status/2059635122203455576",
+                "https://x.com/i/status/2060345703977885900",
+                "https://x.com/i/status/2052043797224378665",
+                "https://x.com/i/status/2054957589570687421"
+            ]},
+            { id: 7, name: "Tweet Batch 4 — Retweet & Comment (Tweets 15-17)", pts: 100, links: [
+                "https://x.com/i/status/2057108021474631684",
+                "https://x.com/i/status/2059635824946499706",
+                "https://x.com/i/status/2060022460737786340"
+            ]}
+        ],
+        others: [
+            { id: 8, name: "Join IOPn Discord", pts: 30, link: "https://discord.gg/iopn", type: "discord" },
+            { id: 9, name: "Deploy a contract on OPN testnet", pts: 100, placeholder: "Paste your deployment TX hash", type: "proof" },
+            { id: 10, name: "Share your builder profile on X", pts: 100, placeholder: "Paste your tweet link", type: "proof" },
+            { id: 11, name: "Register on Builder Board", pts: 60, type: "auto" }
+        ]
+    };
+
+    let userQuestStatus = new Array(11).fill(false);
+    let userQuestScore = 0;
+
+    async function getQuestContract(withSigner = false) {
+        if (withSigner && signer) return new ethers.Contract(QUEST_CONTRACT, QUEST_ABI, signer);
+        const rp = new ethers.JsonRpcProvider(RPC);
+        return new ethers.Contract(QUEST_CONTRACT, QUEST_ABI, rp);
+    }
+
+    async function loadQuests() {
+        const el = document.getElementById("quest-content");
+        if (!userAddress) { el.innerHTML = '<div class="state-msg">Connect your wallet to view and complete quests.</div>'; return; }
+        el.innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Loading quests...</div>';
+        try {
+            const qc = await getQuestContract();
+            const [completions, score] = await qc.getQuestStatus(userAddress);
+            userQuestStatus = Array.from(completions);
+            userQuestScore = Number(score);
+            const rc = await getReadContract();
+            const isReg = await rc.isRegistered(userAddress);
+            const completed = userQuestStatus.filter(Boolean).length;
+
+            let html = `
+                <div class="quest-header">
+                    <h2>⚡ Quests</h2>
+                    <p>Complete quests to earn points and boost your builder score.</p>
+                </div>
+                <div class="quest-score-bar">
+                    <div>
+                        <div class="quest-score-val">${userQuestScore} pts</div>
+                        <div class="quest-score-lbl">Quest Score</div>
+                    </div>
+                    <div style="font-size:13px;color:var(--muted)">${completed} / 11 quests completed</div>
+                </div>`;
+
+            // FOLLOW
+            html += `<div class="quest-section"><div class="quest-section-title">👥 Follow Quests</div>`;
+            for (const q of QUESTS.follows) {
+                const done = userQuestStatus[q.id - 1];
+                html += renderQuestItem(q.id, q.name, q.pts, done,
+                    `<a href="${q.link}" target="_blank" class="quest-link">→ Open on X</a>` +
+                    (!done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${q.id}" placeholder="Paste your X profile link as proof" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${q.id}"></div>` : '')
+                );
+            }
+            html += `</div>`;
+
+            // TWEET BATCHES
+            html += `<div class="quest-section"><div class="quest-section-title">🐦 Retweet & Comment Quests</div>`;
+            for (const batch of QUESTS.batches) {
+                const done = userQuestStatus[batch.id - 1];
+                const linksHtml = batch.links.map((l, i) => `<a href="${l}" target="_blank" class="quest-link">→ Tweet ${i+1}</a>`).join('');
+                html += renderQuestItem(batch.id, batch.name, batch.pts, done,
+                    `<div style="margin-bottom:8px">${linksHtml}</div>` +
+                    (!done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${batch.id}" placeholder="Paste your retweet link as proof" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${batch.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${batch.id}"></div>` : '')
+                );
+            }
+            html += `</div>`;
+
+            // OTHER
+            html += `<div class="quest-section"><div class="quest-section-title">🎯 Other Quests</div>`;
+            for (const q of QUESTS.others) {
+                const done = userQuestStatus[q.id - 1];
+                let body = '';
+                if (q.type === 'discord') {
+                    body = `<a href="${q.link}" target="_blank" class="quest-link">→ Join IOPn Discord</a>` +
+                        (!done ? `<div class="quest-proof-row">
+                            <input class="quest-proof-input" id="proof-${q.id}" placeholder="Paste your Discord username" />
+                            <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                        </div><div class="quest-status" id="status-${q.id}"></div>` : '');
+                } else if (q.type === 'proof') {
+                    body = !done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${q.id}" placeholder="${q.placeholder}" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${q.id}"></div>` : '';
+                } else if (q.type === 'auto') {
+                    if (!done && isReg) {
+                        body = `<button class="quest-submit-btn" onclick="submitQuest(${q.id}, 'auto-registered')">Claim 60 pts</button>
+                        <div class="quest-status" id="status-${q.id}"></div>`;
+                    } else if (!done) {
+                        body = `<p style="font-size:13px;color:var(--muted)">Register on Builder Board first.</p>`;
+                    }
+                }
+                html += renderQuestItem(q.id, q.name, q.pts, done, body);
+            }
+            html += `</div>`;
+            el.innerHTML = html;
+        } catch(e) {
+            el.innerHTML = `<div class="state-msg">⚠ Error: ${e.message}</div>`;
+        }
+    }
+
+    function renderQuestItem(id, name, pts, done, body) {
+        return `<div class="quest-item ${done ? 'done' : ''}" id="quest-item-${id}">
+            <div class="quest-top">
+                <div class="quest-name">${done ? '✅' : '⬜'} ${name}</div>
+                <div style="display:flex;gap:6px;align-items:center">
+                    <span class="quest-pts">+${pts} pts</span>
+                    ${done ? '<span class="quest-done-badge">✓ Done</span>' : ''}
+                </div>
+            </div>
+            ${!done ? body : ''}
+        </div>`;
+    }
+
+    async function submitQuest(questId, autoProof) {
+        if (!userAddress || !signer) { alert("Connect your wallet first."); return; }
+        const proofInput = document.getElementById("proof-" + questId);
+        const proof = autoProof || (proofInput ? proofInput.value.trim() : '');
+        const statusEl = document.getElementById("status-" + questId);
+        if (!proof) { if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ Please provide proof."; } return; }
+        try {
+            if (statusEl) { statusEl.className = "quest-status pending"; statusEl.textContent = "⏳ Submitting on OPN Chain..."; }
+            const qc = await getQuestContract(true);
+            const tx = await qc.submitQuest(questId, proof);
+            if (statusEl) statusEl.textContent = "⏳ Confirming... " + tx.hash.slice(0,10) + "...";
+            await tx.wait();
+            if (statusEl) { statusEl.className = "quest-status success"; statusEl.textContent = "✅ Quest completed! Points added."; }
+            setTimeout(() => loadQuests(), 2000);
+        } catch(e) {
+            if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ " + e.message; }
+        }
+    }
+
+    loadStats();
         } catch(e) { alert("Connection failed: " + e.message); }
     }
 
@@ -477,7 +649,179 @@
             status.textContent = "✅ Badge claimed on-chain! Tx: " + tx.hash.slice(0,10) + "...";
             document.getElementById("claim-btn").disabled = false;
             dataLoaded = false;
-            loadStats();
+        
+    // QUEST DATA
+    const QUESTS = {
+        follows: [
+            { id: 1, name: "Follow @IOPn_io", pts: 50, link: "https://x.com/IOPn_io" },
+            { id: 2, name: "Follow @PEROR250", pts: 50, link: "https://x.com/PEROR250" },
+            { id: 3, name: "Follow @JimiIOPN", pts: 50, link: "https://x.com/JimiIOPN" }
+        ],
+        batches: [
+            { id: 4, name: "Tweet Batch 1 — Retweet & Comment (Tweets 1-4)", pts: 100, links: [
+                "https://x.com/i/status/2061498565126766753",
+                "https://x.com/i/status/2061499606412980577",
+                "https://x.com/i/status/2059742871570289071",
+                "https://x.com/i/status/2060082829434740929"
+            ]},
+            { id: 5, name: "Tweet Batch 2 — Retweet & Comment (Tweets 5-9)", pts: 100, links: [
+                "https://x.com/i/status/2060514611569328285",
+                "https://x.com/i/status/2060694868628852936",
+                "https://x.com/i/status/2060732245321625973",
+                "https://x.com/i/status/2057106946181009494",
+                "https://x.com/i/status/2058898546414493827"
+            ]},
+            { id: 6, name: "Tweet Batch 3 — Retweet & Comment (Tweets 10-14)", pts: 100, links: [
+                "https://x.com/i/status/2059323557520478573",
+                "https://x.com/i/status/2059635122203455576",
+                "https://x.com/i/status/2060345703977885900",
+                "https://x.com/i/status/2052043797224378665",
+                "https://x.com/i/status/2054957589570687421"
+            ]},
+            { id: 7, name: "Tweet Batch 4 — Retweet & Comment (Tweets 15-17)", pts: 100, links: [
+                "https://x.com/i/status/2057108021474631684",
+                "https://x.com/i/status/2059635824946499706",
+                "https://x.com/i/status/2060022460737786340"
+            ]}
+        ],
+        others: [
+            { id: 8, name: "Join IOPn Discord", pts: 30, link: "https://discord.gg/iopn", type: "discord" },
+            { id: 9, name: "Deploy a contract on OPN testnet", pts: 100, placeholder: "Paste your deployment TX hash", type: "proof" },
+            { id: 10, name: "Share your builder profile on X", pts: 100, placeholder: "Paste your tweet link", type: "proof" },
+            { id: 11, name: "Register on Builder Board", pts: 60, type: "auto" }
+        ]
+    };
+
+    let userQuestStatus = new Array(11).fill(false);
+    let userQuestScore = 0;
+
+    async function getQuestContract(withSigner = false) {
+        if (withSigner && signer) return new ethers.Contract(QUEST_CONTRACT, QUEST_ABI, signer);
+        const rp = new ethers.JsonRpcProvider(RPC);
+        return new ethers.Contract(QUEST_CONTRACT, QUEST_ABI, rp);
+    }
+
+    async function loadQuests() {
+        const el = document.getElementById("quest-content");
+        if (!userAddress) { el.innerHTML = '<div class="state-msg">Connect your wallet to view and complete quests.</div>'; return; }
+        el.innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Loading quests...</div>';
+        try {
+            const qc = await getQuestContract();
+            const [completions, score] = await qc.getQuestStatus(userAddress);
+            userQuestStatus = Array.from(completions);
+            userQuestScore = Number(score);
+            const rc = await getReadContract();
+            const isReg = await rc.isRegistered(userAddress);
+            const completed = userQuestStatus.filter(Boolean).length;
+
+            let html = `
+                <div class="quest-header">
+                    <h2>⚡ Quests</h2>
+                    <p>Complete quests to earn points and boost your builder score.</p>
+                </div>
+                <div class="quest-score-bar">
+                    <div>
+                        <div class="quest-score-val">${userQuestScore} pts</div>
+                        <div class="quest-score-lbl">Quest Score</div>
+                    </div>
+                    <div style="font-size:13px;color:var(--muted)">${completed} / 11 quests completed</div>
+                </div>`;
+
+            // FOLLOW
+            html += `<div class="quest-section"><div class="quest-section-title">👥 Follow Quests</div>`;
+            for (const q of QUESTS.follows) {
+                const done = userQuestStatus[q.id - 1];
+                html += renderQuestItem(q.id, q.name, q.pts, done,
+                    `<a href="${q.link}" target="_blank" class="quest-link">→ Open on X</a>` +
+                    (!done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${q.id}" placeholder="Paste your X profile link as proof" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${q.id}"></div>` : '')
+                );
+            }
+            html += `</div>`;
+
+            // TWEET BATCHES
+            html += `<div class="quest-section"><div class="quest-section-title">🐦 Retweet & Comment Quests</div>`;
+            for (const batch of QUESTS.batches) {
+                const done = userQuestStatus[batch.id - 1];
+                const linksHtml = batch.links.map((l, i) => `<a href="${l}" target="_blank" class="quest-link">→ Tweet ${i+1}</a>`).join('');
+                html += renderQuestItem(batch.id, batch.name, batch.pts, done,
+                    `<div style="margin-bottom:8px">${linksHtml}</div>` +
+                    (!done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${batch.id}" placeholder="Paste your retweet link as proof" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${batch.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${batch.id}"></div>` : '')
+                );
+            }
+            html += `</div>`;
+
+            // OTHER
+            html += `<div class="quest-section"><div class="quest-section-title">🎯 Other Quests</div>`;
+            for (const q of QUESTS.others) {
+                const done = userQuestStatus[q.id - 1];
+                let body = '';
+                if (q.type === 'discord') {
+                    body = `<a href="${q.link}" target="_blank" class="quest-link">→ Join IOPn Discord</a>` +
+                        (!done ? `<div class="quest-proof-row">
+                            <input class="quest-proof-input" id="proof-${q.id}" placeholder="Paste your Discord username" />
+                            <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                        </div><div class="quest-status" id="status-${q.id}"></div>` : '');
+                } else if (q.type === 'proof') {
+                    body = !done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${q.id}" placeholder="${q.placeholder}" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${q.id}"></div>` : '';
+                } else if (q.type === 'auto') {
+                    if (!done && isReg) {
+                        body = `<button class="quest-submit-btn" onclick="submitQuest(${q.id}, 'auto-registered')">Claim 60 pts</button>
+                        <div class="quest-status" id="status-${q.id}"></div>`;
+                    } else if (!done) {
+                        body = `<p style="font-size:13px;color:var(--muted)">Register on Builder Board first.</p>`;
+                    }
+                }
+                html += renderQuestItem(q.id, q.name, q.pts, done, body);
+            }
+            html += `</div>`;
+            el.innerHTML = html;
+        } catch(e) {
+            el.innerHTML = `<div class="state-msg">⚠ Error: ${e.message}</div>`;
+        }
+    }
+
+    function renderQuestItem(id, name, pts, done, body) {
+        return `<div class="quest-item ${done ? 'done' : ''}" id="quest-item-${id}">
+            <div class="quest-top">
+                <div class="quest-name">${done ? '✅' : '⬜'} ${name}</div>
+                <div style="display:flex;gap:6px;align-items:center">
+                    <span class="quest-pts">+${pts} pts</span>
+                    ${done ? '<span class="quest-done-badge">✓ Done</span>' : ''}
+                </div>
+            </div>
+            ${!done ? body : ''}
+        </div>`;
+    }
+
+    async function submitQuest(questId, autoProof) {
+        if (!userAddress || !signer) { alert("Connect your wallet first."); return; }
+        const proofInput = document.getElementById("proof-" + questId);
+        const proof = autoProof || (proofInput ? proofInput.value.trim() : '');
+        const statusEl = document.getElementById("status-" + questId);
+        if (!proof) { if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ Please provide proof."; } return; }
+        try {
+            if (statusEl) { statusEl.className = "quest-status pending"; statusEl.textContent = "⏳ Submitting on OPN Chain..."; }
+            const qc = await getQuestContract(true);
+            const tx = await qc.submitQuest(questId, proof);
+            if (statusEl) statusEl.textContent = "⏳ Confirming... " + tx.hash.slice(0,10) + "...";
+            await tx.wait();
+            if (statusEl) { statusEl.className = "quest-status success"; statusEl.textContent = "✅ Quest completed! Points added."; }
+            setTimeout(() => loadQuests(), 2000);
+        } catch(e) {
+            if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ " + e.message; }
+        }
+    }
+
+    loadStats();
             setTimeout(() => loadExistingClaim(), 2000);
         } catch(e) {
             status.className = "tx-status error";
@@ -687,6 +1031,178 @@
             el.innerHTML = html;
         } catch(e) {
             el.innerHTML = `<div class="state-msg">⚠ Error: ${e.message}</div>`;
+        }
+    }
+
+
+    // QUEST DATA
+    const QUESTS = {
+        follows: [
+            { id: 1, name: "Follow @IOPn_io", pts: 50, link: "https://x.com/IOPn_io" },
+            { id: 2, name: "Follow @PEROR250", pts: 50, link: "https://x.com/PEROR250" },
+            { id: 3, name: "Follow @JimiIOPN", pts: 50, link: "https://x.com/JimiIOPN" }
+        ],
+        batches: [
+            { id: 4, name: "Tweet Batch 1 — Retweet & Comment (Tweets 1-4)", pts: 100, links: [
+                "https://x.com/i/status/2061498565126766753",
+                "https://x.com/i/status/2061499606412980577",
+                "https://x.com/i/status/2059742871570289071",
+                "https://x.com/i/status/2060082829434740929"
+            ]},
+            { id: 5, name: "Tweet Batch 2 — Retweet & Comment (Tweets 5-9)", pts: 100, links: [
+                "https://x.com/i/status/2060514611569328285",
+                "https://x.com/i/status/2060694868628852936",
+                "https://x.com/i/status/2060732245321625973",
+                "https://x.com/i/status/2057106946181009494",
+                "https://x.com/i/status/2058898546414493827"
+            ]},
+            { id: 6, name: "Tweet Batch 3 — Retweet & Comment (Tweets 10-14)", pts: 100, links: [
+                "https://x.com/i/status/2059323557520478573",
+                "https://x.com/i/status/2059635122203455576",
+                "https://x.com/i/status/2060345703977885900",
+                "https://x.com/i/status/2052043797224378665",
+                "https://x.com/i/status/2054957589570687421"
+            ]},
+            { id: 7, name: "Tweet Batch 4 — Retweet & Comment (Tweets 15-17)", pts: 100, links: [
+                "https://x.com/i/status/2057108021474631684",
+                "https://x.com/i/status/2059635824946499706",
+                "https://x.com/i/status/2060022460737786340"
+            ]}
+        ],
+        others: [
+            { id: 8, name: "Join IOPn Discord", pts: 30, link: "https://discord.gg/iopn", type: "discord" },
+            { id: 9, name: "Deploy a contract on OPN testnet", pts: 100, placeholder: "Paste your deployment TX hash", type: "proof" },
+            { id: 10, name: "Share your builder profile on X", pts: 100, placeholder: "Paste your tweet link", type: "proof" },
+            { id: 11, name: "Register on Builder Board", pts: 60, type: "auto" }
+        ]
+    };
+
+    let userQuestStatus = new Array(11).fill(false);
+    let userQuestScore = 0;
+
+    async function getQuestContract(withSigner = false) {
+        if (withSigner && signer) return new ethers.Contract(QUEST_CONTRACT, QUEST_ABI, signer);
+        const rp = new ethers.JsonRpcProvider(RPC);
+        return new ethers.Contract(QUEST_CONTRACT, QUEST_ABI, rp);
+    }
+
+    async function loadQuests() {
+        const el = document.getElementById("quest-content");
+        if (!userAddress) { el.innerHTML = '<div class="state-msg">Connect your wallet to view and complete quests.</div>'; return; }
+        el.innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Loading quests...</div>';
+        try {
+            const qc = await getQuestContract();
+            const [completions, score] = await qc.getQuestStatus(userAddress);
+            userQuestStatus = Array.from(completions);
+            userQuestScore = Number(score);
+            const rc = await getReadContract();
+            const isReg = await rc.isRegistered(userAddress);
+            const completed = userQuestStatus.filter(Boolean).length;
+
+            let html = `
+                <div class="quest-header">
+                    <h2>⚡ Quests</h2>
+                    <p>Complete quests to earn points and boost your builder score.</p>
+                </div>
+                <div class="quest-score-bar">
+                    <div>
+                        <div class="quest-score-val">${userQuestScore} pts</div>
+                        <div class="quest-score-lbl">Quest Score</div>
+                    </div>
+                    <div style="font-size:13px;color:var(--muted)">${completed} / 11 quests completed</div>
+                </div>`;
+
+            // FOLLOW
+            html += `<div class="quest-section"><div class="quest-section-title">👥 Follow Quests</div>`;
+            for (const q of QUESTS.follows) {
+                const done = userQuestStatus[q.id - 1];
+                html += renderQuestItem(q.id, q.name, q.pts, done,
+                    `<a href="${q.link}" target="_blank" class="quest-link">→ Open on X</a>` +
+                    (!done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${q.id}" placeholder="Paste your X profile link as proof" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${q.id}"></div>` : '')
+                );
+            }
+            html += `</div>`;
+
+            // TWEET BATCHES
+            html += `<div class="quest-section"><div class="quest-section-title">🐦 Retweet & Comment Quests</div>`;
+            for (const batch of QUESTS.batches) {
+                const done = userQuestStatus[batch.id - 1];
+                const linksHtml = batch.links.map((l, i) => `<a href="${l}" target="_blank" class="quest-link">→ Tweet ${i+1}</a>`).join('');
+                html += renderQuestItem(batch.id, batch.name, batch.pts, done,
+                    `<div style="margin-bottom:8px">${linksHtml}</div>` +
+                    (!done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${batch.id}" placeholder="Paste your retweet link as proof" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${batch.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${batch.id}"></div>` : '')
+                );
+            }
+            html += `</div>`;
+
+            // OTHER
+            html += `<div class="quest-section"><div class="quest-section-title">🎯 Other Quests</div>`;
+            for (const q of QUESTS.others) {
+                const done = userQuestStatus[q.id - 1];
+                let body = '';
+                if (q.type === 'discord') {
+                    body = `<a href="${q.link}" target="_blank" class="quest-link">→ Join IOPn Discord</a>` +
+                        (!done ? `<div class="quest-proof-row">
+                            <input class="quest-proof-input" id="proof-${q.id}" placeholder="Paste your Discord username" />
+                            <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                        </div><div class="quest-status" id="status-${q.id}"></div>` : '');
+                } else if (q.type === 'proof') {
+                    body = !done ? `<div class="quest-proof-row">
+                        <input class="quest-proof-input" id="proof-${q.id}" placeholder="${q.placeholder}" />
+                        <button class="quest-submit-btn" onclick="submitQuest(${q.id})">Submit</button>
+                    </div><div class="quest-status" id="status-${q.id}"></div>` : '';
+                } else if (q.type === 'auto') {
+                    if (!done && isReg) {
+                        body = `<button class="quest-submit-btn" onclick="submitQuest(${q.id}, 'auto-registered')">Claim 60 pts</button>
+                        <div class="quest-status" id="status-${q.id}"></div>`;
+                    } else if (!done) {
+                        body = `<p style="font-size:13px;color:var(--muted)">Register on Builder Board first.</p>`;
+                    }
+                }
+                html += renderQuestItem(q.id, q.name, q.pts, done, body);
+            }
+            html += `</div>`;
+            el.innerHTML = html;
+        } catch(e) {
+            el.innerHTML = `<div class="state-msg">⚠ Error: ${e.message}</div>`;
+        }
+    }
+
+    function renderQuestItem(id, name, pts, done, body) {
+        return `<div class="quest-item ${done ? 'done' : ''}" id="quest-item-${id}">
+            <div class="quest-top">
+                <div class="quest-name">${done ? '✅' : '⬜'} ${name}</div>
+                <div style="display:flex;gap:6px;align-items:center">
+                    <span class="quest-pts">+${pts} pts</span>
+                    ${done ? '<span class="quest-done-badge">✓ Done</span>' : ''}
+                </div>
+            </div>
+            ${!done ? body : ''}
+        </div>`;
+    }
+
+    async function submitQuest(questId, autoProof) {
+        if (!userAddress || !signer) { alert("Connect your wallet first."); return; }
+        const proofInput = document.getElementById("proof-" + questId);
+        const proof = autoProof || (proofInput ? proofInput.value.trim() : '');
+        const statusEl = document.getElementById("status-" + questId);
+        if (!proof) { if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ Please provide proof."; } return; }
+        try {
+            if (statusEl) { statusEl.className = "quest-status pending"; statusEl.textContent = "⏳ Submitting on OPN Chain..."; }
+            const qc = await getQuestContract(true);
+            const tx = await qc.submitQuest(questId, proof);
+            if (statusEl) statusEl.textContent = "⏳ Confirming... " + tx.hash.slice(0,10) + "...";
+            await tx.wait();
+            if (statusEl) { statusEl.className = "quest-status success"; statusEl.textContent = "✅ Quest completed! Points added."; }
+            setTimeout(() => loadQuests(), 2000);
+        } catch(e) {
+            if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ " + e.message; }
         }
     }
 
