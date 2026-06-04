@@ -179,6 +179,59 @@
         .quest-status.pending { color: var(--gold); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); display: block; }
         .quest-status.success { color: var(--green); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); display: block; }
         .quest-status.error { color: var(--red); background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); display: block; }
+
+        /* IDENTITY CARD */
+        .id-card-wrap { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        .id-card {
+            width: 100%; max-width: 480px;
+            background: linear-gradient(135deg, #060d1f 0%, #0d1a35 40%, #130d2e 100%);
+            border-radius: 20px; padding: 32px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 0 60px rgba(59,130,246,0.15), 0 0 120px rgba(139,92,246,0.08);
+        }
+        .id-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--blue), var(--purple), var(--blue));
+            background-size: 200% 100%; animation: shimmer 3s infinite linear;
+        }
+        @keyframes shimmer { 0%{background-position:0% 0%} 100%{background-position:200% 0%} }
+        .id-card::after {
+            content: 'OPN'; position: absolute; right: -20px; bottom: -20px;
+            font-size: 140px; font-weight: 900; color: rgba(59,130,246,0.04);
+            font-family: 'JetBrains Mono', monospace; pointer-events: none;
+        }
+        .id-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .id-card-logo { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--blue); letter-spacing: 2px; }
+        .id-card-network { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.15); padding: 3px 10px; border-radius: 20px; }
+        .id-card-badge-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .id-card-badge-icon { font-size: 56px; line-height: 1; }
+        .id-card-badge-info { flex: 1; }
+        .id-card-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; color: #e2e8f0; }
+        .id-card-badge-label { font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+        .id-card-score { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted); margin-top: 4px; }
+        .id-card-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(59,130,246,0.3), transparent); margin: 20px 0; }
+        .id-card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+        .id-card-stat { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px; }
+        .id-card-stat-val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--blue); margin-bottom: 2px; }
+        .id-card-stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .id-card-pledge { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; margin-bottom: 20px; }
+        .id-card-pledge-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .id-card-pledge-text { font-size: 12px; color: #94a3b8; line-height: 1.6; font-style: italic; }
+        .id-card-footer { display: flex; align-items: center; justify-content: space-between; }
+        .id-card-wallet { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+        .id-card-date { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+        .id-card-xp-bar-wrap { margin-bottom: 20px; }
+        .id-card-xp-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .id-card-xp-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+        .id-card-xp-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width 1s ease; }
+        .card-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%; max-width: 480px; }
+        .card-action-btn { flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; font-family: 'Space Grotesk', sans-serif; transition: all 0.2s; }
+        .btn-share { background: linear-gradient(135deg, var(--blue-dim), var(--blue)); color: white; }
+        .btn-share:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(59,130,246,0.3); }
+        .btn-refresh { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+        .btn-refresh:hover { color: var(--text); border-color: var(--blue); }
+        .card-not-registered { text-align: center; padding: 40px 20px; }
+        .card-not-registered p { color: var(--muted); font-size: 14px; margin-bottom: 16px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -200,6 +253,7 @@
     <button class="btn btn-outline" id="tab-pledges" onclick="switchPage('pledges')">📋 Pledge Board</button>
     <button class="btn btn-outline" id="tab-profile" onclick="switchPage('profile')">👤 My Profile</button>
     <button class="btn btn-outline" id="tab-quests" onclick="switchPage('quests')">⚡ Quests</button>
+    <button class="btn btn-outline" id="tab-card" onclick="switchPage('card')">🪪 ID Card</button>
 </div>
 
 <!-- HOME -->
@@ -314,6 +368,12 @@
     <div id="quest-content"><div class="state-msg">Connect your wallet to view and complete quests.</div></div>
 </div>
 
+
+<!-- IDENTITY CARD PAGE -->
+<div class="page" id="page-card">
+    <div id="card-content"><div class="state-msg">Connect your wallet to generate your OPN Identity Card.</div></div>
+</div>
+
 <footer>OPN Builder Board · IOPn OPN Chain Testnet · Chain ID: 984</footer>
 
 <script>
@@ -374,6 +434,7 @@
         if (page === 'pledges') loadPledges();
         if (page === 'profile') loadProfile();
         if (page === 'quests') loadQuests();
+        if (page === 'card') loadIdentityCard();
         if (page === 'claim') loadExistingClaim();
     }
 
@@ -568,6 +629,186 @@
         } catch(e) {
             if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ " + e.message; }
         }
+    }
+
+
+    // IDENTITY CARD
+    async function loadIdentityCard() {
+        const el = document.getElementById("card-content");
+        if (!userAddress) {
+            el.innerHTML = '<div class="state-msg">Connect your wallet to generate your OPN Identity Card.</div>';
+            return;
+        }
+        el.innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Building your identity card...</div>';
+
+        try {
+            const rc = await getReadContract();
+            const qc = await getQuestContract();
+
+            const [isReg, hasClaim] = await Promise.all([
+                rc.isRegistered(userAddress),
+                rc.hasClaimed(userAddress)
+            ]);
+
+            if (!isReg && !hasClaim) {
+                el.innerHTML = `<div class="card card-not-registered">
+                    <div style="font-size:48px;margin-bottom:12px">🪪</div>
+                    <p>You need to either claim your badge or register as a builder before generating your Identity Card.</p>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                        <button class="btn btn-blue" onclick="switchPage('claim')">🏅 Claim Badge</button>
+                        <button class="btn btn-outline" onclick="switchPage('register')">📝 Register</button>
+                    </div>
+                </div>`;
+                return;
+            }
+
+            // Fetch all data in parallel
+            const [questData, txCount] = await Promise.all([
+                qc.getQuestStatus(userAddress),
+                (async () => {
+                    try {
+                        const rp = new ethers.JsonRpcProvider(RPC);
+                        return await rp.getTransactionCount(userAddress);
+                    } catch(e) { return 0; }
+                })()
+            ]);
+
+            const [completions, questScore] = questData;
+            const questsDone = Array.from(completions).filter(Boolean).length;
+            const qScore = Number(questScore);
+
+            let name = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+            let xhandle = '';
+            let pledge = '';
+            let badgeNum = 0;
+            let builderScore = 0;
+            let registeredAt = Date.now() / 1000;
+            let claimTxCount = 0;
+
+            if (isReg) {
+                const [handle, xh, pl, skill] = await rc.getBuilderInfo(userAddress);
+                const [txScore, pledgeScore, xBonus, totalScore, badge, regAt] = await rc.getBuilderScore(userAddress);
+                name = handle || name;
+                xhandle = xh;
+                pledge = pl;
+                badgeNum = Number(badge);
+                builderScore = Number(totalScore);
+                registeredAt = Number(regAt);
+            }
+
+            if (hasClaim) {
+                const [ct, score, badge, claimedAt] = await rc.getBadgeClaim(userAddress);
+                claimTxCount = Number(ct);
+                if (!isReg) {
+                    badgeNum = Number(badge);
+                    builderScore = Number(score);
+                    registeredAt = Number(claimedAt);
+                }
+            }
+
+            const totalScore = builderScore + qScore;
+            const displayBadge = calcBadge(totalScore);
+            const bc = BADGE_CLASSES[displayBadge];
+            const badgeColors = {
+                gold: { color: '#f59e0b', glow: 'rgba(245,158,11,0.3)' },
+                silver: { color: '#94a3b8', glow: 'rgba(148,163,184,0.3)' },
+                bronze: { color: '#cd7c3a', glow: 'rgba(205,124,58,0.3)' },
+                newbie: { color: '#8b5cf6', glow: 'rgba(139,92,246,0.3)' }
+            };
+            const bColor = badgeColors[bc];
+
+            // XP bar — progress to next tier
+            const tiers = [0, 100, 500, 1000];
+            const tierNames = ['Newbie', 'Bronze', 'Silver', 'Gold'];
+            const currentTierMin = tiers[displayBadge] || 0;
+            const nextTierMax = tiers[displayBadge + 1] || totalScore;
+            const xpPct = displayBadge >= 3 ? 100 : Math.min(100, Math.round(((totalScore - currentTierMin) / (nextTierMax - currentTierMin)) * 100));
+            const nextTierLabel = displayBadge >= 3 ? 'MAX TIER' : tierNames[displayBadge + 1];
+
+            el.innerHTML = `
+            <div class="id-card-wrap">
+                <div class="id-card" id="identity-card" style="box-shadow: 0 0 60px ${bColor.glow}, 0 0 120px rgba(59,130,246,0.08)">
+                    <div class="id-card-header">
+                        <div class="id-card-logo">IOPn BUILDER</div>
+                        <div class="id-card-network">OPN Testnet · 984</div>
+                    </div>
+
+                    <div class="id-card-badge-row">
+                        <div class="id-card-badge-icon">${BADGE_EMOJIS[displayBadge]}</div>
+                        <div class="id-card-badge-info">
+                            <div class="id-card-name">${name}</div>
+                            <div class="id-card-badge-label">
+                                <span class="badge-pill ${badgeClass(displayBadge)}">${BADGE_NAMES[displayBadge]} Builder</span>
+                            </div>
+                            ${xhandle ? `<div class="id-card-score" style="margin-top:6px">𝕏 ${xhandle}</div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="id-card-xp-bar-wrap">
+                        <div class="id-card-xp-label">
+                            <span>Progress to ${nextTierLabel}</span>
+                            <span style="color:${bColor.color}">${totalScore} pts</span>
+                        </div>
+                        <div class="id-card-xp-bar">
+                            <div class="id-card-xp-fill" style="width:${xpPct}%;background:linear-gradient(90deg,${bColor.color},#8b5cf6)"></div>
+                        </div>
+                    </div>
+
+                    <div class="id-card-stats">
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:${bColor.color}">${totalScore}</div>
+                            <div class="id-card-stat-lbl">Total Score</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val">${Number(txCount) || claimTxCount}</div>
+                            <div class="id-card-stat-lbl">OPN TXs</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:#8b5cf6">${questsDone}/11</div>
+                            <div class="id-card-stat-lbl">Quests Done</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:#10b981">${qScore}</div>
+                            <div class="id-card-stat-lbl">Quest Points</div>
+                        </div>
+                    </div>
+
+                    ${pledge ? `
+                    <div class="id-card-pledge">
+                        <div class="id-card-pledge-label">Builder Pledge</div>
+                        <div class="id-card-pledge-text">"${pledge.length > 120 ? pledge.slice(0,120) + '...' : pledge}"</div>
+                    </div>` : ''}
+
+                    <div class="id-card-divider"></div>
+
+                    <div class="id-card-footer">
+                        <div class="id-card-wallet">${userAddress.slice(0,8)}...${userAddress.slice(-6)}</div>
+                        <div class="id-card-date">Since ${new Date(registeredAt * 1000).toLocaleDateString()}</div>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="card-action-btn btn-share" onclick="shareCard('${name}', '${BADGE_NAMES[displayBadge]}', ${totalScore})">
+                        🐦 Share on X
+                    </button>
+                    <button class="card-action-btn btn-refresh" onclick="loadIdentityCard()">
+                        🔄 Refresh
+                    </button>
+                </div>
+
+                <div style="font-size:12px;color:var(--muted);text-align:center;font-family:'JetBrains Mono',monospace;max-width:480px">
+                    Complete more quests, claim your badge, and register as a builder to level up your card.
+                </div>
+            </div>`;
+
+        } catch(e) {
+            el.innerHTML = `<div class="state-msg">⚠ Error loading card: ${e.message}</div>`;
+        }
+    }
+
+    function shareCard(name, badge, score) {
+        const text = `Just generated my OPN Identity Card on IOPn Builder Board!\n\n🏅 ${badge} Builder\n⚡ ${score} pts\n\nClaim yours 👇\nhttps://iopn-onboard.vercel.app\n\n@IOPn_io @PEROR250 #BuildOnOPN #IOPn`;
+        window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
     }
 
     loadStats();
@@ -819,6 +1060,186 @@
         } catch(e) {
             if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ " + e.message; }
         }
+    }
+
+
+    // IDENTITY CARD
+    async function loadIdentityCard() {
+        const el = document.getElementById("card-content");
+        if (!userAddress) {
+            el.innerHTML = '<div class="state-msg">Connect your wallet to generate your OPN Identity Card.</div>';
+            return;
+        }
+        el.innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Building your identity card...</div>';
+
+        try {
+            const rc = await getReadContract();
+            const qc = await getQuestContract();
+
+            const [isReg, hasClaim] = await Promise.all([
+                rc.isRegistered(userAddress),
+                rc.hasClaimed(userAddress)
+            ]);
+
+            if (!isReg && !hasClaim) {
+                el.innerHTML = `<div class="card card-not-registered">
+                    <div style="font-size:48px;margin-bottom:12px">🪪</div>
+                    <p>You need to either claim your badge or register as a builder before generating your Identity Card.</p>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                        <button class="btn btn-blue" onclick="switchPage('claim')">🏅 Claim Badge</button>
+                        <button class="btn btn-outline" onclick="switchPage('register')">📝 Register</button>
+                    </div>
+                </div>`;
+                return;
+            }
+
+            // Fetch all data in parallel
+            const [questData, txCount] = await Promise.all([
+                qc.getQuestStatus(userAddress),
+                (async () => {
+                    try {
+                        const rp = new ethers.JsonRpcProvider(RPC);
+                        return await rp.getTransactionCount(userAddress);
+                    } catch(e) { return 0; }
+                })()
+            ]);
+
+            const [completions, questScore] = questData;
+            const questsDone = Array.from(completions).filter(Boolean).length;
+            const qScore = Number(questScore);
+
+            let name = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+            let xhandle = '';
+            let pledge = '';
+            let badgeNum = 0;
+            let builderScore = 0;
+            let registeredAt = Date.now() / 1000;
+            let claimTxCount = 0;
+
+            if (isReg) {
+                const [handle, xh, pl, skill] = await rc.getBuilderInfo(userAddress);
+                const [txScore, pledgeScore, xBonus, totalScore, badge, regAt] = await rc.getBuilderScore(userAddress);
+                name = handle || name;
+                xhandle = xh;
+                pledge = pl;
+                badgeNum = Number(badge);
+                builderScore = Number(totalScore);
+                registeredAt = Number(regAt);
+            }
+
+            if (hasClaim) {
+                const [ct, score, badge, claimedAt] = await rc.getBadgeClaim(userAddress);
+                claimTxCount = Number(ct);
+                if (!isReg) {
+                    badgeNum = Number(badge);
+                    builderScore = Number(score);
+                    registeredAt = Number(claimedAt);
+                }
+            }
+
+            const totalScore = builderScore + qScore;
+            const displayBadge = calcBadge(totalScore);
+            const bc = BADGE_CLASSES[displayBadge];
+            const badgeColors = {
+                gold: { color: '#f59e0b', glow: 'rgba(245,158,11,0.3)' },
+                silver: { color: '#94a3b8', glow: 'rgba(148,163,184,0.3)' },
+                bronze: { color: '#cd7c3a', glow: 'rgba(205,124,58,0.3)' },
+                newbie: { color: '#8b5cf6', glow: 'rgba(139,92,246,0.3)' }
+            };
+            const bColor = badgeColors[bc];
+
+            // XP bar — progress to next tier
+            const tiers = [0, 100, 500, 1000];
+            const tierNames = ['Newbie', 'Bronze', 'Silver', 'Gold'];
+            const currentTierMin = tiers[displayBadge] || 0;
+            const nextTierMax = tiers[displayBadge + 1] || totalScore;
+            const xpPct = displayBadge >= 3 ? 100 : Math.min(100, Math.round(((totalScore - currentTierMin) / (nextTierMax - currentTierMin)) * 100));
+            const nextTierLabel = displayBadge >= 3 ? 'MAX TIER' : tierNames[displayBadge + 1];
+
+            el.innerHTML = `
+            <div class="id-card-wrap">
+                <div class="id-card" id="identity-card" style="box-shadow: 0 0 60px ${bColor.glow}, 0 0 120px rgba(59,130,246,0.08)">
+                    <div class="id-card-header">
+                        <div class="id-card-logo">IOPn BUILDER</div>
+                        <div class="id-card-network">OPN Testnet · 984</div>
+                    </div>
+
+                    <div class="id-card-badge-row">
+                        <div class="id-card-badge-icon">${BADGE_EMOJIS[displayBadge]}</div>
+                        <div class="id-card-badge-info">
+                            <div class="id-card-name">${name}</div>
+                            <div class="id-card-badge-label">
+                                <span class="badge-pill ${badgeClass(displayBadge)}">${BADGE_NAMES[displayBadge]} Builder</span>
+                            </div>
+                            ${xhandle ? `<div class="id-card-score" style="margin-top:6px">𝕏 ${xhandle}</div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="id-card-xp-bar-wrap">
+                        <div class="id-card-xp-label">
+                            <span>Progress to ${nextTierLabel}</span>
+                            <span style="color:${bColor.color}">${totalScore} pts</span>
+                        </div>
+                        <div class="id-card-xp-bar">
+                            <div class="id-card-xp-fill" style="width:${xpPct}%;background:linear-gradient(90deg,${bColor.color},#8b5cf6)"></div>
+                        </div>
+                    </div>
+
+                    <div class="id-card-stats">
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:${bColor.color}">${totalScore}</div>
+                            <div class="id-card-stat-lbl">Total Score</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val">${Number(txCount) || claimTxCount}</div>
+                            <div class="id-card-stat-lbl">OPN TXs</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:#8b5cf6">${questsDone}/11</div>
+                            <div class="id-card-stat-lbl">Quests Done</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:#10b981">${qScore}</div>
+                            <div class="id-card-stat-lbl">Quest Points</div>
+                        </div>
+                    </div>
+
+                    ${pledge ? `
+                    <div class="id-card-pledge">
+                        <div class="id-card-pledge-label">Builder Pledge</div>
+                        <div class="id-card-pledge-text">"${pledge.length > 120 ? pledge.slice(0,120) + '...' : pledge}"</div>
+                    </div>` : ''}
+
+                    <div class="id-card-divider"></div>
+
+                    <div class="id-card-footer">
+                        <div class="id-card-wallet">${userAddress.slice(0,8)}...${userAddress.slice(-6)}</div>
+                        <div class="id-card-date">Since ${new Date(registeredAt * 1000).toLocaleDateString()}</div>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="card-action-btn btn-share" onclick="shareCard('${name}', '${BADGE_NAMES[displayBadge]}', ${totalScore})">
+                        🐦 Share on X
+                    </button>
+                    <button class="card-action-btn btn-refresh" onclick="loadIdentityCard()">
+                        🔄 Refresh
+                    </button>
+                </div>
+
+                <div style="font-size:12px;color:var(--muted);text-align:center;font-family:'JetBrains Mono',monospace;max-width:480px">
+                    Complete more quests, claim your badge, and register as a builder to level up your card.
+                </div>
+            </div>`;
+
+        } catch(e) {
+            el.innerHTML = `<div class="state-msg">⚠ Error loading card: ${e.message}</div>`;
+        }
+    }
+
+    function shareCard(name, badge, score) {
+        const text = `Just generated my OPN Identity Card on IOPn Builder Board!\n\n🏅 ${badge} Builder\n⚡ ${score} pts\n\nClaim yours 👇\nhttps://iopn-onboard.vercel.app\n\n@IOPn_io @PEROR250 #BuildOnOPN #IOPn`;
+        window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
     }
 
     loadStats();
@@ -1204,6 +1625,186 @@
         } catch(e) {
             if (statusEl) { statusEl.className = "quest-status error"; statusEl.textContent = "⚠ " + e.message; }
         }
+    }
+
+
+    // IDENTITY CARD
+    async function loadIdentityCard() {
+        const el = document.getElementById("card-content");
+        if (!userAddress) {
+            el.innerHTML = '<div class="state-msg">Connect your wallet to generate your OPN Identity Card.</div>';
+            return;
+        }
+        el.innerHTML = '<div class="state-msg"><div class="spinner"></div><br>Building your identity card...</div>';
+
+        try {
+            const rc = await getReadContract();
+            const qc = await getQuestContract();
+
+            const [isReg, hasClaim] = await Promise.all([
+                rc.isRegistered(userAddress),
+                rc.hasClaimed(userAddress)
+            ]);
+
+            if (!isReg && !hasClaim) {
+                el.innerHTML = `<div class="card card-not-registered">
+                    <div style="font-size:48px;margin-bottom:12px">🪪</div>
+                    <p>You need to either claim your badge or register as a builder before generating your Identity Card.</p>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                        <button class="btn btn-blue" onclick="switchPage('claim')">🏅 Claim Badge</button>
+                        <button class="btn btn-outline" onclick="switchPage('register')">📝 Register</button>
+                    </div>
+                </div>`;
+                return;
+            }
+
+            // Fetch all data in parallel
+            const [questData, txCount] = await Promise.all([
+                qc.getQuestStatus(userAddress),
+                (async () => {
+                    try {
+                        const rp = new ethers.JsonRpcProvider(RPC);
+                        return await rp.getTransactionCount(userAddress);
+                    } catch(e) { return 0; }
+                })()
+            ]);
+
+            const [completions, questScore] = questData;
+            const questsDone = Array.from(completions).filter(Boolean).length;
+            const qScore = Number(questScore);
+
+            let name = userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+            let xhandle = '';
+            let pledge = '';
+            let badgeNum = 0;
+            let builderScore = 0;
+            let registeredAt = Date.now() / 1000;
+            let claimTxCount = 0;
+
+            if (isReg) {
+                const [handle, xh, pl, skill] = await rc.getBuilderInfo(userAddress);
+                const [txScore, pledgeScore, xBonus, totalScore, badge, regAt] = await rc.getBuilderScore(userAddress);
+                name = handle || name;
+                xhandle = xh;
+                pledge = pl;
+                badgeNum = Number(badge);
+                builderScore = Number(totalScore);
+                registeredAt = Number(regAt);
+            }
+
+            if (hasClaim) {
+                const [ct, score, badge, claimedAt] = await rc.getBadgeClaim(userAddress);
+                claimTxCount = Number(ct);
+                if (!isReg) {
+                    badgeNum = Number(badge);
+                    builderScore = Number(score);
+                    registeredAt = Number(claimedAt);
+                }
+            }
+
+            const totalScore = builderScore + qScore;
+            const displayBadge = calcBadge(totalScore);
+            const bc = BADGE_CLASSES[displayBadge];
+            const badgeColors = {
+                gold: { color: '#f59e0b', glow: 'rgba(245,158,11,0.3)' },
+                silver: { color: '#94a3b8', glow: 'rgba(148,163,184,0.3)' },
+                bronze: { color: '#cd7c3a', glow: 'rgba(205,124,58,0.3)' },
+                newbie: { color: '#8b5cf6', glow: 'rgba(139,92,246,0.3)' }
+            };
+            const bColor = badgeColors[bc];
+
+            // XP bar — progress to next tier
+            const tiers = [0, 100, 500, 1000];
+            const tierNames = ['Newbie', 'Bronze', 'Silver', 'Gold'];
+            const currentTierMin = tiers[displayBadge] || 0;
+            const nextTierMax = tiers[displayBadge + 1] || totalScore;
+            const xpPct = displayBadge >= 3 ? 100 : Math.min(100, Math.round(((totalScore - currentTierMin) / (nextTierMax - currentTierMin)) * 100));
+            const nextTierLabel = displayBadge >= 3 ? 'MAX TIER' : tierNames[displayBadge + 1];
+
+            el.innerHTML = `
+            <div class="id-card-wrap">
+                <div class="id-card" id="identity-card" style="box-shadow: 0 0 60px ${bColor.glow}, 0 0 120px rgba(59,130,246,0.08)">
+                    <div class="id-card-header">
+                        <div class="id-card-logo">IOPn BUILDER</div>
+                        <div class="id-card-network">OPN Testnet · 984</div>
+                    </div>
+
+                    <div class="id-card-badge-row">
+                        <div class="id-card-badge-icon">${BADGE_EMOJIS[displayBadge]}</div>
+                        <div class="id-card-badge-info">
+                            <div class="id-card-name">${name}</div>
+                            <div class="id-card-badge-label">
+                                <span class="badge-pill ${badgeClass(displayBadge)}">${BADGE_NAMES[displayBadge]} Builder</span>
+                            </div>
+                            ${xhandle ? `<div class="id-card-score" style="margin-top:6px">𝕏 ${xhandle}</div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="id-card-xp-bar-wrap">
+                        <div class="id-card-xp-label">
+                            <span>Progress to ${nextTierLabel}</span>
+                            <span style="color:${bColor.color}">${totalScore} pts</span>
+                        </div>
+                        <div class="id-card-xp-bar">
+                            <div class="id-card-xp-fill" style="width:${xpPct}%;background:linear-gradient(90deg,${bColor.color},#8b5cf6)"></div>
+                        </div>
+                    </div>
+
+                    <div class="id-card-stats">
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:${bColor.color}">${totalScore}</div>
+                            <div class="id-card-stat-lbl">Total Score</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val">${Number(txCount) || claimTxCount}</div>
+                            <div class="id-card-stat-lbl">OPN TXs</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:#8b5cf6">${questsDone}/11</div>
+                            <div class="id-card-stat-lbl">Quests Done</div>
+                        </div>
+                        <div class="id-card-stat">
+                            <div class="id-card-stat-val" style="color:#10b981">${qScore}</div>
+                            <div class="id-card-stat-lbl">Quest Points</div>
+                        </div>
+                    </div>
+
+                    ${pledge ? `
+                    <div class="id-card-pledge">
+                        <div class="id-card-pledge-label">Builder Pledge</div>
+                        <div class="id-card-pledge-text">"${pledge.length > 120 ? pledge.slice(0,120) + '...' : pledge}"</div>
+                    </div>` : ''}
+
+                    <div class="id-card-divider"></div>
+
+                    <div class="id-card-footer">
+                        <div class="id-card-wallet">${userAddress.slice(0,8)}...${userAddress.slice(-6)}</div>
+                        <div class="id-card-date">Since ${new Date(registeredAt * 1000).toLocaleDateString()}</div>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="card-action-btn btn-share" onclick="shareCard('${name}', '${BADGE_NAMES[displayBadge]}', ${totalScore})">
+                        🐦 Share on X
+                    </button>
+                    <button class="card-action-btn btn-refresh" onclick="loadIdentityCard()">
+                        🔄 Refresh
+                    </button>
+                </div>
+
+                <div style="font-size:12px;color:var(--muted);text-align:center;font-family:'JetBrains Mono',monospace;max-width:480px">
+                    Complete more quests, claim your badge, and register as a builder to level up your card.
+                </div>
+            </div>`;
+
+        } catch(e) {
+            el.innerHTML = `<div class="state-msg">⚠ Error loading card: ${e.message}</div>`;
+        }
+    }
+
+    function shareCard(name, badge, score) {
+        const text = `Just generated my OPN Identity Card on IOPn Builder Board!\n\n🏅 ${badge} Builder\n⚡ ${score} pts\n\nClaim yours 👇\nhttps://iopn-onboard.vercel.app\n\n@IOPn_io @PEROR250 #BuildOnOPN #IOPn`;
+        window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
     }
 
     loadStats();
